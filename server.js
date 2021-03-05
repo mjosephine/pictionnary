@@ -50,6 +50,10 @@ io.on('connection', (socket) => {
             return user !== socket
         });
         sendUsers();
+
+        if(users.length === 0 ){
+         timeout = clearTimeout(timeout);
+        }
     });
 
     socket.on('line', (data) => {
@@ -82,6 +86,8 @@ function switchPlayer (){
 
     //un seul joueur peut dessiner
     sendUsers();
+
+
 
     //donner le mot au joueur en cours
     const nextWord = words[Math.floor(Math.random() * words.length)];
