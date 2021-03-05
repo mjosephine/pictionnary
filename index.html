@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pictionnary</title>
+    <style>
+        canvas {
+            border: 1px solid;
+        }
+        li.is-active{
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Hello World</h1>
+    <ul class="users"></ul>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.2.0/p5.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io ();
+        const username = prompt('What is your name?');
+
+        socket.emit('username', username);
+
+        //de base pas le droit de dessiner
+        let canDraw = false;
+
+        //recup ul
+        const userlist = document.querySelector('.users');
+        socket.on('users', (data)=> {
+            userlist.innerHTML = ''; //vider liste avant d'ajouter new
+
+            data.forEach ((user)=> {
+                const li = document.createElement('li');
+                li.innerHTML = user.username;
+                if (user.isActive) {
+                    li.classList.add('is-active');
+                }
+                userlist.appendChild(li);
+                
+
+                if (user.username === username) {
+                    canDraw = user.isActive;
+                }
+            });
+        });
+
+        function setup() {
+            createCanvas(500, 500);
+        }
+
+        function mouseDragged () {
+            //si false, return et le reste ne sera pas exécuté
+            //if (canDraw === false) return;
+            if (!canDraw) return;
+
+            line(mouseX, mouseY, pmouseX, pmouseY);
+            //prevenir le serveur qu'on dessine en envoyant les data de l'objet linre
+            socket.emit('line', {
+                mouseX, 
+                mouseY, 
+                pmouseX, 
+                pmouseY
+            });
+        }
+        socket.on('line', (data) => {
+            line(data.mouseX, data.mouseY, data.pmouseX, data.pmouseY);
+        });
+
+        socket.on('word', (nextword) => {
+            alert(`draw: ${nextword}`);
+        }); 
+        
+        socket.on('clear', () => {
+            clear();
+        });
+        
+    </script> 
+</body>
+</html>
